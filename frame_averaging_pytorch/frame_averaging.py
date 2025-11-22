@@ -1,10 +1,10 @@
-from __future__ import annotations
+from typing import Optional
 
 from random import randrange
 
 import torch
 from torch.nn import Module
-from torch.utils._pytree import tree_map
+
 
 from einops import rearrange, repeat, reduce, einsum
 
@@ -16,12 +16,21 @@ def exists(v):
 def default(v, d):
     return v if exists(v) else d
 
+def tree_map(fn, tree):
+    if isinstance(tree, tuple):
+        return tuple(tree_map(fn, item) for item in tree)
+    elif isinstance(tree, list):
+        return [tree_map(fn, item) for item in tree]
+    elif isinstance(tree, dict):
+        return {k: tree_map(fn, v) for k, v in tree.items()}
+    else:
+        return fn(tree)
 # main class
 
 class FrameAverage(Module):
     def __init__(
         self,
-        net: Module | None = None,
+        net: Optional[Module] = None,
         dim = 3,
         stochastic = False,
         invariant_output = False,
